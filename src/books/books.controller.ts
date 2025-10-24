@@ -1,34 +1,62 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { BooksService } from './books.service';
-import { CreateBookDto } from './dto/create-book.dto';
-import { UpdateBookDto } from './dto/update-book.dto';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from "@nestjs/common";
+import { BooksService } from "./books.service";
+import { CreateBookDto } from "./dto/create-book.dto";
+import { ApiTags, ApiBearerAuth, ApiOkResponse } from "@nestjs/swagger";
+import { JwtAuthGuard } from "../auth/guards/jwt.guards";
+import { UpdateBookDto } from "./dto/update-book.dto";
+import { SearchBooksDto } from "./dto/search-book-dto";
 
-@Controller('books')
+@ApiTags('Books')
+@Controller("books")
 export class BooksController {
-  constructor(private readonly booksService: BooksService) {}
+  constructor(private readonly booksService: BooksService) { }
 
-  @Post()
-  create(@Body() createBookDto: CreateBookDto) {
-    return this.booksService.create(createBookDto);
+  @ApiOkResponse({ description: 'Get a book by ID' })
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.booksService.findOne(id);
   }
 
+  @ApiOkResponse({ description: 'List of all books' })
   @Get()
   findAll() {
     return this.booksService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.booksService.findOne(+id);
+  @ApiOkResponse({ description: 'Search books' })
+  @Get("search")
+  search(@Query() dto: SearchBooksDto) {
+    return this.booksService.search(dto);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOkResponse({ description: 'The book has been successfully created.' })
+  @Post()
+  create(@Body() dto: CreateBookDto) {
+    return this.booksService.create(dto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOkResponse({
+    description: 'The book has been successfully updated.',
+  })
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateBookDto: UpdateBookDto) {
-    return this.booksService.update(+id, updateBookDto);
+  update(
+    @Param('id') id: string,
+    @Body() updateBookDto: UpdateBookDto,
+  ) {
+    return this.booksService.patch(updateBookDto, id);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOkResponse({
+    description: 'The book has been successfully deleted.',
+  })
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.booksService.remove(+id);
+    return this.booksService.delete(id);
   }
 }
