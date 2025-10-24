@@ -1,4 +1,4 @@
-import { Delete, Get, Injectable, Patch, Post } from "@nestjs/common";
+import { Delete, Injectable, Patch, Post } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { Prisma } from "@prisma/client";
 import { CreateBookDto } from "./dto/create-book.dto";
@@ -12,17 +12,18 @@ export class BooksService {
   async findOne(id: string) {
     return this.prisma.book.findUnique({
       where: { id },
-      include: { authors: true, genres: true },
+      include: { authors: true },
     });
   }
 
   async findAll() {
     return this.prisma.book.findMany({
-      include: { authors: true, genres: true },
+      include: { authors: true },
       orderBy: { createdAt: "desc" },
     });
   }
 
+  // experimental search function
   async search(dto: SearchBooksDto) {
     const { querySting, genre, autor, page = 1, pageSize = 10, sort = "newest" } = dto;
 
@@ -32,7 +33,7 @@ export class BooksService {
       where.authors = { some: { name: { equals: autor, mode: "insensitive" } } };
     }
     else if (genre) {
-      where.genres = { some: { name: { equals: genre, mode: "insensitive" } } };
+      where.genres = { some: { equals: genre, mode: "insensitive" } };
     }
 
     if (querySting) {
@@ -40,7 +41,7 @@ export class BooksService {
       where.OR = [
         { title: qLike },
         { authors: { some: { name: qLike } } },
-        { genres: { some: { name: qLike } } },
+        { genres: { some: { qLike } } },
       ];
     }
     // sort by title or createdAt date if no sort is specified
@@ -58,7 +59,7 @@ export class BooksService {
         orderBy,
         skip,
         take,
-        include: { authors: true, genres: true },
+        include: { authors: true },
       }),
       this.prisma.book.count({ where }),
     ]);
@@ -79,30 +80,20 @@ export class BooksService {
       create: { name },
     }));
 
-    const genreConnectOrCreate = dto.genreNames.map((name) => ({
-      where: { name },
-      create: { name },
-    }));
-
     return this.prisma.book.create({
       data: {
         title: dto.title,
         year: dto.year,
         authors: { connectOrCreate: authorConnectOrCreate },
-        genres: { connectOrCreate: genreConnectOrCreate },
+        genres: dto.genreNames
       },
-      include: { authors: true, genres: true },
+      include: { authors: true },
     });
   }
 
   @Patch()
   async patch(dto: UpdateBookDto, id: string) {
     const authorConnectOrCreate = dto.authorNames?.map((name) => ({
-      where: { name },
-      create: { name },
-    }));
-
-    const genreConnectOrCreate = dto.genreNames?.map((name) => ({
       where: { name },
       create: { name },
     }));
@@ -115,11 +106,9 @@ export class BooksService {
         authors: authorConnectOrCreate
           ? { connectOrCreate: authorConnectOrCreate }
           : undefined,
-        genres: genreConnectOrCreate
-          ? { connectOrCreate: genreConnectOrCreate }
-          : undefined,
+        genres: dto.genreNames
       },
-      include: { authors: true, genres: true },
+      include: { authors: true },
     });
   }
 

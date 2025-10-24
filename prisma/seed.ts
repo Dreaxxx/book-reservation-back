@@ -5,30 +5,15 @@ const prisma = new PrismaClient();
 
 async function main() {
     //Default User
-    await prisma.user.create({
-        data: {
+    await prisma.user.upsert({
+        where: { email: 'test@test.com' },
+        update: {},
+        create: {
             email: 'test@test.com',
             password: await argon2.hash('password'),
             name: 'John Doe',
-        },
+        }
     })
-
-    // Genres
-    const fiction = await prisma.genre.upsert({
-        where: { name: "Fiction" },
-        update: {},
-        create: { name: "Fiction" },
-    });
-    const fantasy = await prisma.genre.upsert({
-        where: { name: "Fantasy" },
-        update: {},
-        create: { name: "Fantasy" },
-    });
-    const sciFi = await prisma.genre.upsert({
-        where: { name: "Science-Fiction" },
-        update: {},
-        create: { name: "Science-Fiction" },
-    });
 
     // Authros
     const tolkien = await prisma.author.upsert({
@@ -50,7 +35,7 @@ async function main() {
             title: "Le Seigneur des Anneaux",
             year: 1954,
             authors: { connect: [{ id: tolkien.id }] },
-            genres: { connect: [{ id: fantasy.id }, { id: fiction.id }] },
+            genres: ['Fantasy', 'Adventure'],
         },
     });
 
@@ -61,7 +46,7 @@ async function main() {
             title: "Fondation",
             year: 1951,
             authors: { connect: [{ id: asimov.id }] },
-            genres: { connect: [{ id: sciFi.id }] },
+            genres: ['Science Fiction'],
         },
     });
 }

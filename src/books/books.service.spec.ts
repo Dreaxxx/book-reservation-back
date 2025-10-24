@@ -54,7 +54,7 @@ describe('BooksService', () => {
 
       expect(prisma.book.findUnique).toHaveBeenCalledWith({
         where: { id: 'b1' },
-        include: { authors: true, genres: true },
+        include: { authors: true},
       });
       expect(res?.id).toBe('b1');
     });
@@ -67,7 +67,7 @@ describe('BooksService', () => {
       const res = await service.findAll();
 
       expect(prisma.book.findMany).toHaveBeenCalledWith({
-        include: { authors: true, genres: true },
+        include: { authors: true },
         orderBy: { createdAt: 'desc' },
       });
       expect(res).toEqual([{ id: 'b1' }]);
@@ -81,7 +81,7 @@ describe('BooksService', () => {
         title: 'Title',
         year: 2024,
         authors: [{ name: 'Author A' }],
-        genres: [{ name: 'Fantasy' }],
+        genres: [ 'Fantasy' ],
       });
 
       const dto = {
@@ -102,13 +102,9 @@ describe('BooksService', () => {
               { where: { name: 'Author A' }, create: { name: 'Author A' } },
             ],
           },
-          genres: {
-            connectOrCreate: [
-              { where: { name: 'Fantasy' }, create: { name: 'Fantasy' } },
-            ],
-          },
+          genres: ['Fantasy'],
         },
-        include: { authors: true, genres: true },
+        include: { authors: true  },
       });
       expect(res.id).toBe('b2');
     });
@@ -121,7 +117,7 @@ describe('BooksService', () => {
         title: 'New',
         year: 2020,
         authors: [{ name: 'A1' }],
-        genres: [{ name: 'G1' }],
+        genres: [ 'G1' ],
       });
 
       const dto = {
@@ -143,13 +139,9 @@ describe('BooksService', () => {
               { where: { name: 'A1' }, create: { name: 'A1' } },
             ],
           },
-          genres: {
-            connectOrCreate: [
-              { where: { name: 'G1' }, create: { name: 'G1' } },
-            ],
-          },
+          genres: ['G1'],
         },
-        include: { authors: true, genres: true },
+        include: { authors: true},
       });
       expect(res.id).toBe('b3');
     });
@@ -175,7 +167,7 @@ describe('BooksService', () => {
           authors: undefined,
           genres: undefined,
         },
-        include: { authors: true, genres: true },
+        include: { authors: true },
       });
     });
   });
