@@ -33,7 +33,7 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, document, {
     jsonDocumentUrl: 'swagger',
     explorer: true,
-    customSiteTitle: 'Meeting Rooms — Swagger',
+    customSiteTitle: 'Book Reservation — Swagger',
   });
 
   const prismaService = app.get(PrismaService);
