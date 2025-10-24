@@ -8,7 +8,7 @@ datasource db {
 }
 
 model User {
-  id           Int           @id @default(autoincrement())
+  id           String        @id @default(cuid())
   email        String        @unique
   name         String?
   password     String
@@ -18,7 +18,7 @@ model User {
 }
 
 model Author {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(cuid())
   name      String   @unique
   books     Book[]   @relation("BookAuthors")
   createdAt DateTime @default(now())
@@ -26,7 +26,7 @@ model Author {
 }
 
 model Genre {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(cuid())
   name      String   @unique
   books     Book[]   @relation("BookGenres")
   createdAt DateTime @default(now())
@@ -34,7 +34,7 @@ model Genre {
 }
 
 model Book {
-  id          Int           @id @default(autoincrement())
+  id          String        @id @default(cuid())
   title       String
   year        Int?
   authors     Author[]      @relation("BookAuthors")
@@ -47,11 +47,11 @@ model Book {
 }
 
 model Reservation {
-  id           Int      @id @default(autoincrement())
+  id           String   @id @default(cuid())
+  bookId       String
   book         Book     @relation(fields: [bookId], references: [id])
-  bookId       Int
-  reservedById Int
-  reservedBy   User     @relation(fields: [reservedById], references: [id])
+  reservedById String?
+  reservedBy   User?    @relation(fields: [reservedById], references: [id], onDelete: SetNull)
   reservedAt   DateTime @default(now())
   dueDate      DateTime
   createdAt    DateTime @default(now())

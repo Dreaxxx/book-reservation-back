@@ -44,7 +44,7 @@ async function main() {
 
     // Books
     await prisma.book.upsert({
-        where: { id: 1 },
+        where: { id: "1" },
         update: {},
         create: {
             title: "Le Seigneur des Anneaux",
@@ -55,7 +55,7 @@ async function main() {
     });
 
     await prisma.book.upsert({
-        where: { id: 2 },
+        where: { id: "2" },
         update: {},
         create: {
             title: "Fondation",
