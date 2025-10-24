@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 
 async function main() {
     //Default User
-    await prisma.user.upsert({
+    const user = await prisma.user.upsert({
         where: { email: 'test@test.com' },
         update: {},
         create: {
@@ -28,7 +28,7 @@ async function main() {
     });
 
     // Books
-    await prisma.book.upsert({
+    const book = await prisma.book.upsert({
         where: { id: "1" },
         update: {},
         create: {
@@ -47,6 +47,17 @@ async function main() {
             year: 1951,
             authors: { connect: [{ id: asimov.id }] },
             genres: ['Science Fiction'],
+        },
+    });
+
+    // Reservations
+    await prisma.reservation.upsert({
+        where: { id: "3" },
+        update: {},
+        create: {
+            book: { connect: { id: book.id } },
+            reservedBy: { connect: { id: user.id } },
+            dueDate: new Date('2025-12-31'),
         },
     });
 }

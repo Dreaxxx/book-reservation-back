@@ -16,7 +16,6 @@ export class CreateBookDto {
     @IsOptional()
     @Type(() => Number)
     @IsInt()
-    @Min(0)
     year?: number;
 
     @ApiProperty({

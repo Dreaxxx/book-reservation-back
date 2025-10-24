@@ -1,34 +1,55 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req } from '@nestjs/common';
 import { ReservationsService } from './reservations.service';
 import { CreateReservationDto } from './dto/create-reservation.dto';
 import { UpdateReservationDto } from './dto/update-reservation.dto';
+import { ApiBearerAuth, ApiOkResponse } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../auth/guards/jwt.guards';
 
 @Controller('reservations')
 export class ReservationsController {
-  constructor(private readonly reservationsService: ReservationsService) {}
+  constructor(private readonly reservationsService: ReservationsService) { }
 
-  @Post()
-  create(@Body() createReservationDto: CreateReservationDto) {
-    return this.reservationsService.create(createReservationDto);
-  }
-
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOkResponse({ description: 'List of all reservations' })
   @Get()
   findAll() {
     return this.reservationsService.findAll();
   }
 
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOkResponse({ description: 'Get a reservation by ID' })
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.reservationsService.findOne(+id);
+    return this.reservationsService.findOne(id);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOkResponse({ description: 'Reservation successfully created' })
+  @Post()
+  create(@Body() createReservationDto: CreateReservationDto, @Req() req: any) {
+    console.log('req.user', req.user);
+
+    return this.reservationsService.create({
+      ...createReservationDto,
+    }, req.user.userId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOkResponse({ description: 'Reservation successfully updated' })
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateReservationDto: UpdateReservationDto) {
-    return this.reservationsService.update(+id, updateReservationDto);
+    return this.reservationsService.patch(id, updateReservationDto);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOkResponse({ description: 'Reservation successfully deleted' })
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.reservationsService.remove(+id);
+    return this.reservationsService.delete(id);
   }
 }

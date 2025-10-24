@@ -1,4 +1,4 @@
-import { Delete, Injectable, Patch, Post } from "@nestjs/common";
+import { Delete, Get, Injectable, Patch, Post } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { Prisma } from "@prisma/client";
 import { CreateBookDto } from "./dto/create-book.dto";
@@ -9,6 +9,7 @@ import { SearchBooksDto } from "./dto/search-book-dto";
 export class BooksService {
   constructor(private prisma: PrismaService) { }
 
+  @Get(':id')
   async findOne(id: string) {
     return this.prisma.book.findUnique({
       where: { id },
@@ -16,6 +17,7 @@ export class BooksService {
     });
   }
 
+  @Get()
   async findAll() {
     return this.prisma.book.findMany({
       include: { authors: true },
@@ -24,6 +26,7 @@ export class BooksService {
   }
 
   // experimental search function
+  @Get("search")
   async search(dto: SearchBooksDto) {
     const { querySting, genre, autor, page = 1, pageSize = 10, sort = "newest" } = dto;
 

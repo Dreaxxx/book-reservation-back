@@ -30,7 +30,7 @@ model Book {
   title       String
   year        Int?
   authors     Author[]      @relation("BookAuthors")
-  genres      String[]      
+  genres      String[]
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
   Reservation Reservation[]
@@ -42,8 +42,8 @@ model Reservation {
   id           String   @id @default(cuid())
   bookId       String
   book         Book     @relation(fields: [bookId], references: [id])
-  reservedById String?
-  reservedBy   User?    @relation(fields: [reservedById], references: [id], onDelete: SetNull)
+  reservedById String
+  reservedBy   User     @relation(fields: [reservedById], references: [id], onDelete: Cascade)
   reservedAt   DateTime @default(now())
   dueDate      DateTime
   createdAt    DateTime @default(now())
