@@ -1,6 +1,12 @@
+import { ApiProperty } from "@nestjs/swagger";
+import { IsNotEmpty, IsString, MaxLength } from "class-validator";
+
 export class CreateAuthorDto {
-    id!: string;
+    @ApiProperty({
+        example: 'J.K. Rowling',
+    })
+    @IsString()
+    @IsNotEmpty()
+    @MaxLength(100)
     name!: string;
-    createdAt?: Date;
-    updatedAt?: Date;
 }

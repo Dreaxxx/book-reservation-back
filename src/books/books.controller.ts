@@ -45,9 +45,9 @@ export class BooksController {
   @Patch(':id')
   update(
     @Param('id') id: string,
-    @Body() updateBookDto: UpdateBookDto,
+    @Body() dto: UpdateBookDto,
   ) {
-    return this.booksService.patch(updateBookDto, id);
+    return this.booksService.patch(dto, id);
   }
 
   @UseGuards(JwtAuthGuard)

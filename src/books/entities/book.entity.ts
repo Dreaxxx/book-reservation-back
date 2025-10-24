@@ -6,7 +6,6 @@ export class Book {
     authorNames: string[];
     genreNames: string[];
     year?: number;
-    reservation?: Reservation;
     createdAt: Date;
     updatedAt: Date;
 }

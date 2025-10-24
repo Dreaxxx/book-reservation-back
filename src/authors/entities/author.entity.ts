@@ -1,6 +1,6 @@
 export class Author {
     id: string;
-    name: string;
+    name!: string;
     createdAt: Date;
     updatedAt: Date;
 }
