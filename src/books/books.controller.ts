@@ -11,6 +11,15 @@ import { SearchBooksDto } from "./dto/search-book-dto";
 export class BooksController {
   constructor(private readonly booksService: BooksService) { }
 
+  @ApiOkResponse({ description: 'Search books' })
+  @Get("search")
+  async search(@Query() dto: SearchBooksDto) {
+    console.log("dto", dto)
+    const result = await (this.booksService.search(dto));
+    console.log("result", result);
+    return result;
+  }
+
   @ApiOkResponse({ description: 'Get a book by ID' })
   @Get(':id')
   findOne(@Param('id') id: string) {
@@ -21,12 +30,6 @@ export class BooksController {
   @Get()
   findAll() {
     return this.booksService.findAll();
-  }
-
-  @ApiOkResponse({ description: 'Search books' })
-  @Get("search")
-  search(@Query() dto: SearchBooksDto) {
-    return this.booksService.search(dto);
   }
 
   @UseGuards(JwtAuthGuard)

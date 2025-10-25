@@ -4,14 +4,17 @@ import { IsInt, IsOptional, IsString, Min } from "class-validator";
 export class SearchBooksDto {
     @IsOptional()
     @IsString()
+    @Transform(({ value, obj }) => (value ?? obj.searchQuery ?? '').trim() || undefined)
     querySting?: string;
 
     @IsOptional()
     @IsString()
+    @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
     genre?: string;
 
     @IsOptional()
     @IsString()
+    @Transform(({ value, obj }) => (value ?? obj.author ?? '').trim() || undefined)
     autor?: string;
 
     @IsOptional()

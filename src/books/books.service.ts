@@ -1,4 +1,4 @@
-import { Delete, Get, Injectable, Patch, Post } from "@nestjs/common";
+import { Delete, Get, Injectable, Patch, Post, Query } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { Prisma } from "@prisma/client";
 import { CreateBookDto } from "./dto/create-book.dto";
@@ -26,32 +26,34 @@ export class BooksService {
   }
 
   // experimental search function
-  @Get("search")
-  async search(dto: SearchBooksDto) {
-    const { querySting, genre, autor, page = 1, pageSize = 10, sort = "newest" } = dto;
+  @Get('search')
+  async search(@Query() dto: SearchBooksDto) {
+    const { querySting, genre, autor, page = 1, pageSize = 10, sort = 'newest' } = dto;
 
-    const where: any = {};
+    const where: Prisma.BookWhereInput = {};
 
     if (autor) {
-      where.authors = { some: { name: { equals: autor, mode: "insensitive" } } };
+      where.authors = { some: { name: { contains: autor, mode: 'insensitive' } } };
     }
-    else if (genre) {
-      where.genres = { some: { equals: genre, mode: "insensitive" } };
+
+    if (genre) {
+      where.genres = { has: genre };
     }
 
     if (querySting) {
-      const qLike = { contains: querySting, mode: "insensitive" };
+      const qLike = { contains: querySting, mode: 'insensitive' as const };
+
       where.OR = [
         { title: qLike },
         { authors: { some: { name: qLike } } },
-        { genres: { some: { qLike } } },
+        { genres: { has: querySting } },
       ];
     }
-    // sort by title or createdAt date if no sort is specified
+
     const orderBy: Prisma.BookOrderByWithRelationInput =
-      sort === "title_asc" ? { title: "asc" } :
-        sort === "title_desc" ? { title: "desc" } :
-          { createdAt: "desc" };
+      sort === 'title_asc' ? { title: 'asc' } :
+        sort === 'title_desc' ? { title: 'desc' } :
+          { createdAt: 'desc' };
 
     const skip = (page - 1) * pageSize;
     const take = pageSize;
@@ -62,7 +64,9 @@ export class BooksService {
         orderBy,
         skip,
         take,
-        include: { authors: true },
+        include: {
+          authors: true,
+        },
       }),
       this.prisma.book.count({ where }),
     ]);
@@ -100,6 +104,8 @@ export class BooksService {
       where: { name },
       create: { name },
     }));
+
+    console.log("dto in patch", dto);
 
     return this.prisma.book.update({
       where: { id },
