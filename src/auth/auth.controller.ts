@@ -14,15 +14,15 @@ export class AuthController {
   @ApiBody({ type: SignupDto })
   @ApiOkResponse({ type: LoginResponseDto, description: 'Successful signup' })
   async signup(@Body() dto: SignupDto): Promise<LoginResponseDto> {
-    const token = (await this.auth.signup(dto.email, dto.password, dto.name)).accessToken;
-    return { accessToken: token };
+    const { accessToken, user } = (await this.auth.signup(dto.email, dto.password, dto.name));
+    return { accessToken, user };
   }
 
   @Post('login')
   @ApiBody({ type: LoginDto })
   @ApiOkResponse({ type: LoginResponseDto, description: 'Successful login' })
   async login(@Body() dto: LoginDto): Promise<LoginResponseDto> {
-    const token = (await this.auth.login(dto.email, dto.password)).accessToken;
-    return { accessToken: token };
+    const { accessToken, user } = (await this.auth.login(dto.email, dto.password));
+    return { accessToken, user };
   }
 }

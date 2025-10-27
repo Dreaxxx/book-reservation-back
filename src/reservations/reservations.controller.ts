@@ -41,15 +41,19 @@ export class ReservationsController {
   @ApiBearerAuth('JWT-auth')
   @ApiOkResponse({ description: 'Reservation successfully updated' })
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateReservationDto: UpdateReservationDto) {
-    return this.reservationsService.patch(id, updateReservationDto);
+  update(@Param('id') id: string, @Body() updateReservationDto: UpdateReservationDto, @Req() req: any) {
+    console.log('req.user', req.user);
+
+    return this.reservationsService.patch(id, updateReservationDto, req.user.userId);
   }
 
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT-auth')
   @ApiOkResponse({ description: 'Reservation successfully deleted' })
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.reservationsService.delete(id);
+  remove(@Param('id') id: string, @Req() req: any) {
+    console.log('req.user', req.user);
+
+    return this.reservationsService.delete(id, req.user.userId);
   }
 }

@@ -13,5 +13,5 @@ export class SignupDto {
 
   @ApiProperty({ example: 'John Doe' })
   @IsString()
-  name?: string;
+  name: string;
 }

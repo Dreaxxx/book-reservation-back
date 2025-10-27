@@ -7,12 +7,12 @@ import { UsersService } from '../users/users.service';
 export class AuthService {
     constructor(private users: UsersService, private jwt: JwtService) { }
 
-    async signup(email: string, password: string, name?: string) {
+    async signup(email: string, password: string, name: string) {
         const exists = await this.users.findByEmail(email);
         if (exists) throw new ConflictException('Email already used');
         const hash = await argon2.hash(password);
         const user = await this.users.create({ email, password: hash, name });
-        return this.sign(user.id, user.email);
+        return this.sign(user.id, user.email, user.name);
     }
 
     async login(email: string, password: string) {
@@ -20,11 +20,11 @@ export class AuthService {
         if (!user || !(await argon2.verify(user.password, password))) {
             throw new UnauthorizedException('Invalid credentials');
         }
-        return this.sign(user.id, user.email);
+        return this.sign(user.id, user.email, user.name);
     }
 
-    private sign(sub: string, email: string) {
+    private sign(sub: string, email: string, name: string) {
         const accessToken = this.jwt.sign({ sub, email });
-        return { accessToken, user: { id: sub, email } };
+        return { accessToken, user: { id: sub, email, name } };
     }
 }

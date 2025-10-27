@@ -68,7 +68,7 @@ describe('AuthService', () => {
       });
       expect(res).toEqual({
         accessToken: 'jwt-token',
-        user: { id: '1', email: 'john@doe.com' },
+        user: { id: '1', email: 'john@doe.com', name: 'John' },
       });
     });
 
@@ -146,10 +146,11 @@ describe('AuthService', () => {
         id: '4',
         email: 'sign@test.com',
         password: 'hashed_pw',
+        name: 'Signer',
       });
       jwtService.sign.mockReturnValue('token-4');
 
-      const res = await service.signup('sign@test.com', 'pw');
+      const res = await service.signup('sign@test.com', 'hashed_pw', 'Signer');
 
       expect(jwtService.sign).toHaveBeenCalledWith({
         sub: '4',

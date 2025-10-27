@@ -63,7 +63,9 @@ export class ReservationsService {
   }
 
   @Patch(':id')
-  async patch(id: string, dto: UpdateReservationDto) {
+  async patch(id: string, dto: UpdateReservationDto, userId: string) {
+    if (!userId) throw new UnauthorizedException('Only authenticated users can update reservations');
+
     const data: Prisma.ReservationUpdateInput = {};
 
     if (dto.dueDate !== undefined) {
@@ -78,7 +80,9 @@ export class ReservationsService {
   }
 
   @Delete(':id')
-  async delete(id: string) {
+  async delete(id: string, userId: string) {
+    if (!userId) throw new UnauthorizedException('Only authenticated users can delete reservations');
+
     return this.prisma.reservation.delete({
       where: { id },
     });

@@ -13,4 +13,5 @@ export class LoginDto {
 
 export class LoginResponseDto {
   @IsString() accessToken: string;
+  @IsString() user: { id: string; email: string; name: string };
 }
