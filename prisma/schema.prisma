@@ -27,7 +27,7 @@ model Author {
 
 model Book {
   id          String        @id @default(cuid())
-  title       String
+  title       String        @unique
   year        Int?
   authors     Author[]      @relation("BookAuthors")
   genres      String[]
@@ -36,6 +36,7 @@ model Book {
   Reservation Reservation[]
 
   @@index([title])
+  @@unique([title, year])
 }
 
 model Reservation {

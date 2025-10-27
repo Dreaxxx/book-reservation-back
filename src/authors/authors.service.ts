@@ -27,6 +27,14 @@ export class AuthorsService {
       throw new BadRequestException('Name is required');
     }
 
+    const exists = await this.prisma.author.findUnique({
+      where: { name: dto.name },
+    });
+    
+    if (exists) {
+      throw new BadRequestException('Author with this name already exists');
+    }
+
     return this.prisma.author.create({
       data: {
         name: dto.name

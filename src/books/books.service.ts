@@ -1,4 +1,4 @@
-import { Delete, Get, Injectable, Patch, Post, Query } from "@nestjs/common";
+import { BadRequestException, Delete, Get, Injectable, Patch, Post, Query } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { Prisma } from "@prisma/client";
 import { CreateBookDto } from "./dto/create-book.dto";
@@ -86,6 +86,26 @@ export class BooksService {
       where: { name },
       create: { name },
     }));
+
+    if (!dto?.title?.trim()) {
+      throw new BadRequestException('Title is required');
+    }
+
+    if (!dto?.authorNames?.length) {
+      throw new BadRequestException('At least one author is required');
+    }
+
+    if (!dto?.genreNames?.length) {
+      throw new BadRequestException('At least one genre is required');
+    }
+
+    const titleExists = await this.prisma.book.findUnique({
+      where: { title: dto.title! },
+    });
+
+    if (titleExists) {
+      throw new BadRequestException('Book with this title already exists');
+    }
 
     return this.prisma.book.create({
       data: {
