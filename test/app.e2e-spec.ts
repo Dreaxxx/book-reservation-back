@@ -8,6 +8,7 @@ describe('API (e2e)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let token: string;
+  let user: { id: string; email: string; name: string };
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -21,82 +22,95 @@ describe('API (e2e)', () => {
     await app.init();
 
     prisma = app.get(PrismaService);
+
+    await request(app.getHttpServer())
+      .post('/auth/signup')
+      .send({ email: 'test@test.com', password: 'pass1234', name: 'John Doe' })
+      .expect(201);
+
+    const { body } = await request(app.getHttpServer())
+      .post('/auth/login')
+      .send({ email: 'test@test.com', password: 'pass1234' })
+      .expect(201);
+
+    expect(body?.accessToken).toBeTruthy();
+    token = body.accessToken;
+    user = body.user;
   });
 
   afterAll(async () => {
     await app.close();
   });
 
-  it('signup + login -> récupère un token', async () => {
-    await request(app.getHttpServer())
-      .post('/auth/signup')
-      .send({ email: 'john@acme.com', password: 'pass1234', name: 'John Doe' })
-      .expect(201);
-
-    const { body } = await request(app.getHttpServer())
-      .post('/auth/login')
-      .send({ email: 'john@acme.com', password: 'pass1234' })
-      .expect(201);
-
-    expect(body?.accessToken).toBeTruthy();
-    token = body.accessToken;
-  });
-
-  describe('rooms', () => {
-    it('POST /rooms -> creates a room', async () => {
+  describe('books', () => {
+    it('POST /books -> creates a book', async () => {
       const res = await request(app.getHttpServer())
-        .post('/rooms')
+        .post('/books')
         .set('Authorization', `Bearer ${token}`)
-        .send({ name: 'Orion', capacity: 4 })
+        .send({ title: 'Le culte de la liberté', authorNames: ['George Orwell'], year: 1949, genreNames: ['Dystopian'] })
         .expect(201);
-      expect(res.body).toMatchObject({ name: 'Orion', capacity: 4 });
+
+      expect(res.body).toEqual(expect.objectContaining({
+        id: expect.any(String),
+        title: 'Le culte de la liberté',
+        year: 1949,
+        genres: expect.arrayContaining(['Dystopian']),
+        authors: expect.arrayContaining([
+          expect.objectContaining({ name: 'George Orwell' }),
+        ]),
+      }));
     });
 
-    it('GET /rooms -> get all rooms', async () => {
-      const res = await request(app.getHttpServer()).get('/rooms').expect(200);
+    it('GET /books -> get all books', async () => {
+      const res = await request(app.getHttpServer()).get('/books').expect(200);
       expect(res.body.length).toBeGreaterThan(0);
     });
 
-    it('GET /rooms/:id -> get one room', async () => {
-      const { body: rooms } = await request(app.getHttpServer())
-        .get('/rooms')
+    it('GET /books/:id -> get one book', async () => {
+      const { body: books } = await request(app.getHttpServer())
+        .get('/books')
         .expect(200);
-      const roomsId = rooms[0].id;
+      const booksId = books[0].id;
 
       const res = await request(app.getHttpServer())
-        .get(`/rooms/${roomsId}`)
+        .get(`/books/${booksId}`)
         .expect(200);
-      expect(res.body).toMatchObject({ name: 'Orion', capacity: 4 });
+      expect(res.body).toMatchObject({ id: booksId, title: books[0].title, year: books[0].year, genres: books[0].genres, authors: books[0].authors });
     });
   });
 
   describe('reservations', () => {
     it('POST /reservations -> creates then rejects overlap', async () => {
-      const { body: rooms } = await request(app.getHttpServer())
-        .get('/rooms')
+      const { body: books } = await request(app.getHttpServer())
+        .get('/books')
         .expect(200);
-      const roomId = rooms[0].id;
 
-      const startsAt = new Date('2025-11-22T09:00:00.000Z').toISOString();
-      const startsAt2 = new Date('2025-11-22T09:30:00.000Z').toISOString();
-      const endsAt = new Date('2025-11-22T10:00:00.000Z').toISOString();
+      const bookId = books[0].id;
+      const dueDate = new Date('2025-11-22T10:00:00.000Z').toISOString();
 
       await request(app.getHttpServer())
         .post('/reservations')
         .set('Authorization', `Bearer ${token}`)
-        .send({ roomId, title: 'Reu 1', startsAt, endsAt, userId: 'userId1234' })
+        .send({
+          bookId: bookId,
+          dueDate: dueDate,
+        })
         .expect(201);
 
       await request(app.getHttpServer())
         .post('/reservations')
         .set('Authorization', `Bearer ${token}`)
-        .send({ roomId, title: 'Reu 2', startsAt2, endsAt })
+        .send({
+          bookId: bookId,
+          dueDate: dueDate,
+        })
         .expect(400);
     });
 
     it('GET /reservations -> get all reservations', async () => {
       const res = await request(app.getHttpServer())
         .get('/reservations')
+        .set('Authorization', `Bearer ${token}`)
         .expect(200);
       expect(res.body.length).toBeGreaterThan(0);
     });
@@ -104,11 +118,13 @@ describe('API (e2e)', () => {
     it('GET /reservations/:id -> get one reservation', async () => {
       const { body: reservations } = await request(app.getHttpServer())
         .get('/reservations')
+        .set('Authorization', `Bearer ${token}`)
         .expect(200);
       const reservationId = reservations[0].id;
 
       const res = await request(app.getHttpServer())
         .get(`/reservations/${reservationId}`)
+        .set('Authorization', `Bearer ${token}`)
         .expect(200);
       expect(res.body).toMatchObject({ id: reservationId });
     });
@@ -116,23 +132,27 @@ describe('API (e2e)', () => {
     it('PATCH /reservations/:id -> updates a reservation', async () => {
       const { body: reservations } = await request(app.getHttpServer())
         .get('/reservations')
+        .set('Authorization', `Bearer ${token}`)
         .expect(200);
+
       const reservationId = reservations[0].id;
+      const newDueDate = new Date('2025-11-28T10:00:00.000Z').toISOString();
 
       const res = await request(app.getHttpServer())
         .patch(`/reservations/${reservationId}`)
         .set('Authorization', `Bearer ${token}`)
-        .send({ title: 'Updated Title' })
+        .send({ dueDate: newDueDate })
         .expect(200);
       expect(res.body).toMatchObject({
         id: reservationId,
-        title: 'Updated Title',
+        dueDate: newDueDate,
       });
     });
 
     it('DELETE /reservations/:id -> deletes a reservation', async () => {
       const { body: reservations } = await request(app.getHttpServer())
         .get('/reservations')
+        .set('Authorization', `Bearer ${token}`)
         .expect(200);
       const reservationId = reservations[0].id;
 
