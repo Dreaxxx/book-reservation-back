@@ -15,6 +15,14 @@ CORS_ORIGIN=http://localhost:3000
 JWT_SECRET=jwt
 ```
 
+Créez un autre .env.pg.local (non commité non plus) à la racine d u déôt back : 
+
+```ts
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+POSTGRES_DB=bookdb
+```
+
 ### Prisma
 `DATABASE_URL=postgresql://postgres:postgres@postgres:5432/bookdb?schema=public`
 
@@ -47,4 +55,8 @@ DATABASE_URL=postgresql://postgres:postgres@localhost:55432/bookdb?schema=public
 
 ## Commandes
 
+Vous pouvez executer la seed prisma en utilisant la commande : `npm run prisma:seed` qui fera un populate de la base de données avec des valeurs de bases et un utilisateur par défaut.
+
 Executez un : `npm install` à la racine du projet puis simplement un : `npm run dev` pour lancer le backend. 
+
+Vous pouvez executer les tests en utilisant les commandes : `npm run test` pour les tests uniqtaires et : `npm run test:e2e` pour les tests fonctionnels.
